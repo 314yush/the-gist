@@ -9,6 +9,9 @@ out/
 .next/
 .vercel/
 
+# Chrome Web Store upload artifacts
+apps/extension/*.zip
+
 # Electron
 *.dmg
 *.app
