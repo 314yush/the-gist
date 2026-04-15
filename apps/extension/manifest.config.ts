@@ -5,7 +5,7 @@ export default defineManifest({
   name: 'The Gist',
   short_name: 'The Gist',
   description: 'One-click explanations personalized to your knowledge. Select, copy, or just click — The Gist explains it your way.',
-  version: '0.1.0',
+  version: '0.1.1',
   icons: {
     '16': 'public/icons/icon-16.png',
     '48': 'public/icons/icon-48.png',
