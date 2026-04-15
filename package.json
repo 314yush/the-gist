@@ -10,6 +10,7 @@
     "dev:landing": "pnpm -F @thegist/landing dev",
     "build": "pnpm -r build",
     "vercel-build": "pnpm -F @thegist/shared build && pnpm -F @thegist/api build",
+    "vercel-build:landing": "pnpm -F @thegist/landing build",
     "typecheck": "pnpm -r typecheck",
     "package": "pnpm -F @thegist/desktop package"
   },

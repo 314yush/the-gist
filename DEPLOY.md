@@ -1,32 +1,33 @@
 # Deployment Guide — The Gist
 
-> **Names:** Use [Railway](https://railway.app) (not “Rainway”) for container/static hosting. The GitHub remote for this repo is **https://github.com/314yush/the-gist.git**.
+> **GitHub:** https://github.com/314yush/the-gist.git
 
-Deploy targets:
+**Production split:** **API** on [Railway](https://railway.app) (Docker). **Landing / frontend** on [Vercel](https://vercel.com) (static Vite build).
 
 | Unit | Where | Type |
 |------|-------|------|
-| **API** (`apps/api`) | Railway (Docker) *or* Vercel (serverless) | Both supported in-repo |
-| **Landing** (`apps/landing`) | Railway | Static site (Dockerfile) |
+| **API** (`apps/api`) | Railway | Docker (`apps/api/Dockerfile`) |
+| **Landing** (`apps/landing`) | Vercel | Static site (`pnpm vercel-build:landing`) |
 | **Extension** (`apps/extension`) | Chrome Web Store | Manual zip upload |
+
+The files `apps/landing/Dockerfile` and `apps/landing/railway.toml` are optional if you ever want the landing on Railway instead; the default setup is Vercel for the frontend.
 
 ---
 
 ## Prerequisites
 
 - GitHub account
-- Railway account (https://railway.app) — connect it to your GitHub
+- Railway account — connect it to your GitHub repo
+- Vercel account — import the same GitHub repo
 - Chrome Web Store Developer account ($5 one-time: https://chrome.google.com/webstore/devconsole)
-- Your API keys ready: `OPENROUTER_API_KEY`, `XAI_API_KEY`, `AUTH_SECRET`
+- API keys ready: `OPENROUTER_API_KEY`, `XAI_API_KEY`, `AUTH_SECRET`
 
 ---
 
 ## Step 0: Push to GitHub
 
-If the repo **https://github.com/314yush/the-gist** is empty (or you are replacing history only with local agreement):
-
 ```bash
-cd /path/to/the-gist   # your clone of eli5 / the-gist monorepo
+cd /path/to/the-gist
 
 git init
 git branch -M main
@@ -37,55 +38,22 @@ git remote add origin https://github.com/314yush/the-gist.git
 git push -u origin main
 ```
 
-If you prefer the GitHub CLI and the repo does not exist yet:
-
-```bash
-gh repo create the-gist --private --source=. --remote=origin --push
-```
-
-(`gh` will match the name to https://github.com/314yush/the-gist if you use that exact name.)
-
----
-
-## (Alternative) Deploy API on Vercel
-
-The API includes a Vercel adapter at `apps/api/api/index.ts` and `apps/api/vercel.json`. Use this **instead of** Railway for the backend if you want serverless on Vercel.
-
-1. Import the GitHub repo in [Vercel](https://vercel.com) → **Add New** → **Project**.
-2. **Root Directory:** `apps/api`.
-3. **Framework Preset:** Other (or “Hono” if shown).
-4. **Install Command** (pnpm workspace; run from repo root):
-
-   ```bash
-   cd ../.. && pnpm install --frozen-lockfile
-   ```
-
-5. **Build Command** (uses the root `vercel-build` script):
-
-   ```bash
-   cd ../.. && pnpm vercel-build
-   ```
-
-6. Set the same env vars as Railway (see [Step 1.2](#12-set-environment-variables)), e.g. `OPENROUTER_API_KEY`, `XAI_API_KEY`, `AUTH_SECRET`, `CORS_ORIGINS`, optional `EXTENSION_ID`, `RATE_LIMIT_RPM`, etc.
-7. Deploy. Your API routes are served via the serverless entry; health is available at `/health` (and `/v1/health` per app routes).
-
-**Note:** You typically deploy **either** Railway **or** Vercel for the API, not both, unless you use different URLs for staging vs production.
+Or with GitHub CLI: `gh repo create the-gist --private --source=. --remote=origin --push`
 
 ---
 
 ## Step 1: Deploy API on Railway
 
-### 1.1 Create the project
+### 1.1 Create the service
 
-1. Go to https://railway.app/dashboard
-2. Click **"New Project"** → **"Deploy from GitHub Repo"**
-3. Select the `thegist` repo
-4. Railway auto-detects the `railway.toml` at `apps/api/railway.toml`
-   - If it doesn't, set **Root Directory** to `/` (the Dockerfile path in railway.toml is already `apps/api/Dockerfile`)
+1. https://railway.app/dashboard → **New Project** → **Deploy from GitHub Repo**
+2. Select **the-gist** (`314yush/the-gist`)
+3. **Config file path** (service **Settings**): `apps/api/railway.toml`  
+   Dockerfile path in that file: `apps/api/Dockerfile`
 
-### 1.2 Set environment variables
+### 1.2 Environment variables
 
-In Railway dashboard → your service → **Variables** tab, add:
+Railway → your API service → **Variables**:
 
 ```
 NODE_ENV=production
@@ -97,195 +65,131 @@ RATE_LIMIT_RPM=60
 CORS_ORIGINS=https://thegist.app
 ```
 
+Add your **Vercel production URL** to `CORS_ORIGINS` (comma-separated) once you have it, e.g.:
+
+```
+CORS_ORIGINS=https://thegist.app,https://the-gist.vercel.app
+```
+
+For preview deploys, either add each `*.vercel.app` preview URL while testing or use a stable preview branch domain in Vercel.
+
 Optional:
+
 ```
 OPENROUTER_MODEL=google/gemini-2.5-flash
 OPENROUTER_IMAGE_MODEL=google/gemini-2.5-flash-image-preview
-EXTENSION_ID=<your-chrome-extension-id-once-published>
-INVITE_CODE=<if-you-want-invite-gating>
+EXTENSION_ID=<chrome-extension-id-once-published>
+INVITE_CODE=<if-invite-gating>
 ```
 
-### 1.3 Set the config file path
+### 1.3 Domain
 
-Railway needs to know where the `railway.toml` is. In the service **Settings**:
+**Settings** → **Networking** → **Generate Domain** (e.g. `thegist-api-production.up.railway.app`). Use this URL in the extension default API URL and anywhere else that calls the API.
 
-- **Config file path**: `apps/api/railway.toml`
-
-### 1.4 Generate a domain
-
-In **Settings** → **Networking** → click **"Generate Domain"**.
-
-You'll get something like `thegist-api-production.up.railway.app`.
-
-Save this URL — you'll need it for the extension and landing page.
-
-### 1.5 (Optional) Custom domain
-
-If you want `api.thegist.app`:
-1. In Railway **Settings** → **Networking** → **Custom Domain** → add `api.thegist.app`
-2. Add the CNAME record Railway gives you to your DNS provider
-
-### 1.6 Verify
+### 1.4 Verify
 
 ```bash
-curl https://YOUR-RAILWAY-DOMAIN/health
-# Should return: {"status":"ok"}
+curl https://YOUR-RAILWAY-API-DOMAIN/health
+# {"status":"ok"}
 ```
 
 ---
 
-## Step 2: Deploy Landing Page on Railway
+## Step 2: Deploy landing on Vercel
 
-### 2.1 Add a new service in the same Railway project
+### 2.1 Create the project
 
-1. In your Railway project, click **"+ New"** → **"GitHub Repo"** → select same repo
-2. Railway will auto-detect the Dockerfile
+1. [Vercel](https://vercel.com) → **Add New** → **Project** → import **314yush/the-gist**
+2. **Root Directory:** `apps/landing` (important for the monorepo)
+3. Vercel reads `apps/landing/vercel.json` (`installCommand`, `buildCommand`, Vite output `dist`)
 
-### 2.2 Set the config file path
+### 2.2 Environment variables (optional)
 
-In the service **Settings**:
+In **Settings** → **Environment Variables**, add anything referenced as `VITE_*` in the app. Example from `apps/landing/.env.example`:
 
-- **Config file path**: `apps/landing/railway.toml`
+```
+VITE_CHROME_STORE_URL=https://chrome.google.com/webstore/detail/the-gist/your-id
+```
 
-No environment variables needed — it's a static site.
+Redeploy after changing env vars.
 
-### 2.3 Generate domain / custom domain
+### 2.3 Domain
 
-Same as API — generate a Railway domain or add `thegist.app` as custom domain.
+Assign **thegist.app** (or a subdomain) under **Project** → **Settings** → **Domains**, or use the default `*.vercel.app` URL.
+
+### 2.4 Align CORS on the API
+
+Copy your **production** Vercel URL into Railway’s `CORS_ORIGINS` so the browser can call the Railway API from the marketing site (see Step 1.2).
 
 ---
 
-## Step 3: Point Extension at Production API
+## Step 3: Point extension at production API
 
-Before building the extension for the Chrome Web Store, update the default API URL.
-
-### 3.1 Update the default API URL in the extension
-
-Edit `apps/extension/src/lib/api.ts`, line 13:
+Edit `apps/extension/src/lib/api.ts`: set the default API URL to your Railway API (not Vercel):
 
 ```typescript
-// Change from:
-return (await getLocal('apiUrl')) || 'http://localhost:3000';
-// Change to:
-return (await getLocal('apiUrl')) || 'https://YOUR-RAILWAY-DOMAIN';
+return (await getLocal('apiUrl')) || 'https://YOUR-RAILWAY-API-DOMAIN';
 ```
 
-Replace `YOUR-RAILWAY-DOMAIN` with your actual Railway API URL (e.g., `https://api.thegist.app` or `https://thegist-api-production.up.railway.app`).
-
-### 3.2 Build the extension
+Build and zip:
 
 ```bash
-cd /Users/piyush/eli5
 pnpm --filter @thegist/extension build
-```
-
-The built extension is in `apps/extension/dist/`.
-
-### 3.3 Create the zip
-
-```bash
-cd apps/extension/dist
-zip -r ../thegist-extension.zip .
+cd apps/extension/dist && zip -r ../thegist-extension.zip .
 ```
 
 ---
 
-## Step 4: Publish Extension to Chrome Web Store
+## Step 4: Chrome Web Store
 
-### 4.1 First-time setup
-
-1. Go to https://chrome.google.com/webstore/devconsole
-2. Pay the $5 developer registration fee if you haven't
-3. Click **"New Item"**
-
-### 4.2 Upload
-
-1. Click **"Upload"** → select `apps/extension/thegist-extension.zip`
-2. Fill in the store listing:
-   - **Name**: The Gist
-   - **Summary**: One-click explanations personalized to your knowledge
-   - **Description**: Select, copy, or just click — The Gist explains it your way. Select text on any page to get instant, personalized explanations powered by AI.
-   - **Category**: Productivity
-   - **Language**: English
-
-### 4.3 Add required assets
-
-You'll need:
-- **Icon**: 128x128 PNG (already at `public/icons/icon-128.png`)
-- **Screenshots**: At least 1 screenshot (1280x800 or 640x400)
-- **Promo tile**: 440x280 (optional but recommended)
-
-### 4.4 Privacy practices
-
-- **Single purpose**: Explain selected text using AI
-- **Permissions justification**:
-  - `contextMenus`: Right-click "Explain" menu
-  - `scripting`: Read selected text from active tab
-  - `storage`: Save user preferences and auth token
-  - `activeTab`: Access current tab for text selection
-  - `<all_urls>`: Content script runs on all pages to detect text selection
-- **Data use**: No data sold, no data used for purposes unrelated to the extension
-
-### 4.5 Submit for review
-
-Click **"Submit for Review"**. Reviews typically take 1-3 business days.
-
-### 4.6 After approval
-
-1. Copy your **Extension ID** from the developer console
-2. Add it to your Railway API env vars: `EXTENSION_ID=your-extension-id`
-3. (Optional) Update the landing page CTA link to point to your Chrome Web Store listing
+Same store listing and privacy steps as before — upload `apps/extension/thegist-extension.zip`. After approval, set `EXTENSION_ID` on the Railway API and refresh `CORS_ORIGINS` / extension origins as in **Step 5** below.
 
 ---
 
-## Step 5: Update CORS for Production
+## Step 5: CORS and extension ID (production)
 
-Once you have your extension ID, update Railway API environment variables:
+Railway API variables:
 
 ```
-CORS_ORIGINS=https://thegist.app
+CORS_ORIGINS=https://thegist.app,https://your-app.vercel.app
 EXTENSION_ID=your-chrome-extension-id
 ```
 
-This locks down CORS to only allow requests from your landing page and your specific extension.
+Include every origin that should call the API (landing on Vercel, local dev if needed).
 
 ---
 
-## Post-Deploy Checklist
+## Post-deploy checklist
 
-- [ ] `curl https://YOUR-API-DOMAIN/health` returns `{"status":"ok"}`
-- [ ] Landing page loads at your domain
-- [ ] Extension installed from Chrome Web Store (or loaded unpacked for testing)
-- [ ] Select text → pill → click → overlay with explanation
-- [ ] Right-click text → "Explain with The Gist" → overlay
-- [ ] Right-click link → "Explain this link" → overlay
-- [ ] Click toolbar icon → overlay opens
-- [ ] `Cmd+Shift+L` → overlay opens
-- [ ] Options page accessible (right-click extension icon → Options)
+- [ ] `curl https://YOUR-API/health` → `{"status":"ok"}`
+- [ ] Landing loads on Vercel
+- [ ] Extension flows work against the Railway API URL
 
 ---
 
-## Auto-Deploy (GitHub Push → Railway)
+## Auto-deploy
 
-Railway auto-deploys on every push to `main` by default. No CI/CD config needed.
-
-If you want to limit deploys:
-- Railway Settings → **Triggers** → set to deploy only on specific branches or paths
+- **Railway:** deploys on push to `main` (configure **Triggers** if you want branch/path filters).
+- **Vercel:** deploys on push to connected branches; preview deployments for PRs.
 
 ---
 
 ## Rollback
 
-Railway keeps deploy history. To rollback:
-1. Go to your service → **Deployments** tab
-2. Click on a previous successful deploy
-3. Click **"Rollback"**
+- **Railway:** service → **Deployments** → previous deploy → **Rollback**
+- **Vercel:** project → **Deployments** → **⋯** on a previous deployment → **Promote to Production**
 
 ---
 
-## Cost Estimate
+## Cost (rough)
 
-- **Railway**: Free tier gives $5/month credit. API + landing page should fit within ~$5-10/month at low traffic. Pay-as-you-go after that.
-- **Chrome Web Store**: $5 one-time registration fee
-- **OpenRouter**: Pay per API call (varies by model)
-- **xAI**: Pay per API call for Twitter/Grok features
+- **Railway:** free tier credit; API-only is usually modest at low traffic
+- **Vercel:** hobby tier often covers a static marketing site
+- **Chrome Web Store:** $5 one-time
+- **OpenRouter / xAI:** usage-based
+
+---
+
+## Optional: API on Vercel instead of Railway
+
+The repo includes `apps/api/api/index.ts` and `apps/api/vercel.json` for a serverless Hono deployment. Not the default for this project (we standardize on **Railway for API**), but you can add a second Vercel project with **Root Directory** `apps/api`, install from repo root, and build with `pnpm vercel-build` at the workspace root.

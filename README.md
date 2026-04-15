@@ -8,15 +8,19 @@ Select text, copy, or just click — The Gist explains it your way using your pe
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                  CHROME EXTENSION                                │
-│  Select text / Copy / Click → Capture → Show explanation        │
+│  CHROME EXTENSION                                                │
+│  Select text / Copy / Click → Capture → Show explanation         │
 └─────────────────────────────────────────────────────────────────┘
                               │
                         POST /v1/explanations
-                              │
+                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                  BACKEND (Hono on Railway/Render)                │
-│  Auth → xAI x_search (Twitter) → OpenRouter (AI) → Response    │
+│  API — Hono on Railway                                           │
+│  Auth → xAI x_search (Twitter) → OpenRouter (AI) → Response      │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  LANDING — Vite on Vercel (marketing site)                       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
