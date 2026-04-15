@@ -297,7 +297,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <div className="space-y-3">
                 <input
                   type="url"
-                  placeholder="API URL (e.g., https://api.thegist.app)"
+                  placeholder="API URL (e.g., https://api.whatsthegist.xyz)"
                   value={apiUrl}
                   onChange={(e) => setApiUrl(e.target.value)}
                   className="w-full px-3 py-2 rounded bg-white/5 border border-white/10 text-[13px] text-white/90 placeholder-white/30 focus:outline-none focus:border-gold/50"

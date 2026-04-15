@@ -1,3 +1,5 @@
+import { PUBLIC_SITE_URL } from '../site.js';
+
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export interface GeneratedImage {
@@ -33,7 +35,7 @@ Style: clean educational infographic or diagram, dark charcoal background (#1c1a
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://thegist.app',
+        'HTTP-Referer': PUBLIC_SITE_URL,
         'X-OpenRouter-Title': 'The Gist',
       },
       body: JSON.stringify({

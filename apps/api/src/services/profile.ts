@@ -4,6 +4,7 @@ import { ERROR_CODES, ERROR_MESSAGES } from '@thegist/shared';
 import type { ApiError } from '@thegist/shared';
 
 import { log } from '../lib/logger.js';
+import { PUBLIC_SITE_URL } from '../site.js';
 
 const logger = log('profile');
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -185,7 +186,7 @@ Write in second person ("you"). Keep it concise but informative. Use markdown he
       headers: {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://thegist.app',
+        'HTTP-Referer': PUBLIC_SITE_URL,
         'X-OpenRouter-Title': 'The Gist',
       },
       body: JSON.stringify({

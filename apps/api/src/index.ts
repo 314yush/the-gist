@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { PUBLIC_SITE_URL } from './site.js';
 import { health } from './routes/health.js';
 import { auth } from './routes/auth.js';
 import { explanations } from './routes/explanations.js';
@@ -19,7 +20,7 @@ app.use(
       const envOrigins = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) ?? [];
       const allowed = [
         ...envOrigins,
-        'https://thegist.app',
+        PUBLIC_SITE_URL,
         // Allow localhost only in non-production
         ...(!isProduction ? ['http://localhost:5173', 'http://localhost:5174'] : []),
       ];

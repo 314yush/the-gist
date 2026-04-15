@@ -62,13 +62,13 @@ OPENROUTER_API_KEY=sk-or-v1-your-key
 XAI_API_KEY=xai-your-key
 AUTH_SECRET=<run: openssl rand -base64 32>
 RATE_LIMIT_RPM=60
-CORS_ORIGINS=https://thegist.app
+CORS_ORIGINS=https://whatsthegist.xyz
 ```
 
 Add your **Vercel production URL** to `CORS_ORIGINS` (comma-separated) once you have it, e.g.:
 
 ```
-CORS_ORIGINS=https://thegist.app,https://the-gist.vercel.app
+CORS_ORIGINS=https://whatsthegist.xyz,https://the-gist.vercel.app
 ```
 
 For preview deploys, either add each `*.vercel.app` preview URL while testing or use a stable preview branch domain in Vercel.
@@ -80,7 +80,10 @@ OPENROUTER_MODEL=google/gemini-2.5-flash
 OPENROUTER_IMAGE_MODEL=google/gemini-2.5-flash-image-preview
 EXTENSION_ID=<chrome-extension-id-once-published>
 INVITE_CODE=<if-invite-gating>
+PUBLIC_SITE_URL=https://whatsthegist.xyz
 ```
+
+`PUBLIC_SITE_URL` defaults to `https://whatsthegist.xyz` in code; set it on Railway if your canonical site URL differs (e.g. `https://www.whatsthegist.xyz`).
 
 ### 1.3 Domain
 
@@ -115,7 +118,7 @@ Redeploy after changing env vars.
 
 ### 2.3 Domain
 
-Assign **thegist.app** (or a subdomain) under **Project** → **Settings** → **Domains**, or use the default `*.vercel.app` URL.
+Assign **whatsthegist.xyz** (or `www`) under **Project** → **Settings** → **Domains**, or use the default `*.vercel.app` URL.
 
 ### 2.4 Align CORS on the API
 
@@ -151,7 +154,7 @@ Same store listing and privacy steps as before — upload `apps/extension/thegis
 Railway API variables:
 
 ```
-CORS_ORIGINS=https://thegist.app,https://your-app.vercel.app
+CORS_ORIGINS=https://whatsthegist.xyz,https://your-app.vercel.app
 EXTENSION_ID=your-chrome-extension-id
 ```
 

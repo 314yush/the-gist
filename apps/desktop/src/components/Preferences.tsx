@@ -80,7 +80,7 @@ export function Preferences({ onClose }: PreferencesProps) {
                 type="url"
                 value={apiUrl}
                 onChange={handleChange(setApiUrl)}
-                placeholder="https://api.thegist.app"
+                placeholder="https://api.whatsthegist.xyz"
                 className="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-[13px] text-white/90 placeholder-white/30 focus:outline-none focus:border-gold/50 transition-colors"
               />
             </div>

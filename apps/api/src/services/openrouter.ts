@@ -2,6 +2,7 @@ import type { Explanation, ApiError } from '@thegist/shared';
 import { ERROR_CODES, ERROR_MESSAGES } from '@thegist/shared';
 import { explanationSchema } from '../lib/schemas.js';
 import { log } from '../lib/logger.js';
+import { PUBLIC_SITE_URL } from '../site.js';
 
 const logger = log('openrouter');
 
@@ -91,7 +92,7 @@ export async function generateExplanation(
   const requestHeaders = {
     'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
     'Content-Type': 'application/json',
-    'HTTP-Referer': 'https://thegist.app',
+    'HTTP-Referer': PUBLIC_SITE_URL,
     'X-OpenRouter-Title': 'The Gist',
   };
 
