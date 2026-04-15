@@ -10,7 +10,7 @@ import type {
 import { getLocal, setLocal, getSession, setSession } from './storage';
 
 async function getApiUrl(): Promise<string> {
-  return (await getLocal('apiUrl')) || 'http://localhost:3000';
+  return (await getLocal('apiUrl')) || 'https://thegistapi-production.up.railway.app';
 }
 
 export async function authenticate(installId: string): Promise<AuthTokenResponse> {
