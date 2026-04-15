@@ -1,0 +1,58 @@
+{
+  "appId": "com.thegist.app",
+  "productName": "The Gist",
+  "copyright": "Copyright © 2024 The Gist",
+  "directories": {
+    "output": "release",
+    "buildResources": "assets"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "assets",
+      "to": "assets",
+      "filter": ["**/*"]
+    }
+  ],
+  "mac": {
+    "category": "public.app-category.productivity",
+    "icon": "assets/icon.icns",
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["universal"]
+      },
+      {
+        "target": "zip",
+        "arch": ["universal"]
+      }
+    ],
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "entitlements.mac.plist",
+    "entitlementsInherit": "entitlements.mac.plist",
+    "extendInfo": {
+      "LSUIElement": true,
+      "NSAppleEventsUsageDescription": "The Gist needs automation access to capture content from other apps.",
+      "NSScreenCaptureUsageDescription": "The Gist needs screen capture access to capture regions of your screen."
+    }
+  },
+  "dmg": {
+    "title": "${productName} ${version}",
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ]
+  }
+}

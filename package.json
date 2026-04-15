@@ -1,0 +1,20 @@
+{
+  "name": "the-gist",
+  "private": true,
+  "version": "0.1.0",
+  "description": "One-click explanations personalized to your knowledge",
+  "scripts": {
+    "dev": "pnpm -F @thegist/desktop dev",
+    "dev:api": "pnpm -F @thegist/api dev",
+    "dev:ext": "pnpm -F @thegist/extension dev",
+    "dev:landing": "pnpm -F @thegist/landing dev",
+    "build": "pnpm -r build",
+    "vercel-build": "pnpm -F @thegist/shared build && pnpm -F @thegist/api build",
+    "typecheck": "pnpm -r typecheck",
+    "package": "pnpm -F @thegist/desktop package"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

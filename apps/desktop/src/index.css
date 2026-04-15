@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom properties for Lumina design system */
+:root {
+  --color-terracotta: #BC5F40;
+  --color-gold: #DCA842;
+  --color-cream: #FDFBF7;
+  --color-dark: #1c1a19;
+  --color-darker: #0f0e0d;
+}
+
+/* Base styles */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glass panel effect */
+.glass-panel {
+  background: rgba(28, 26, 25, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Mac window shadow */
+.mac-window-shadow {
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.6), 
+    0 0 0 1px rgba(255, 255, 255, 0.08), 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Mac popup shadow */
+.mac-popup-shadow {
+  box-shadow: 
+    0 10px 30px -5px rgba(0, 0, 0, 0.5), 
+    0 0 0 1px rgba(255, 255, 255, 0.1), 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Retro border pattern */
+.retro-border {
+  background-image: repeating-linear-gradient(
+    45deg, 
+    transparent, 
+    transparent 4px, 
+    rgba(255, 255, 255, 0.05) 4px, 
+    rgba(255, 255, 255, 0.05) 5px
+  );
+}
+
+/* Drag region for frameless window */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}

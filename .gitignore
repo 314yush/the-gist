@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+dist-electron/
+out/
+.next/
+.vercel/
+
+# Electron
+*.dmg
+*.app
+release/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE / local agent
+.idea/
+*.swp
+*.swo
+.vscode/settings.json
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+
+# Temp
+tmp/
+.tmp/

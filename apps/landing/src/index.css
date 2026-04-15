@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+@keyframes gist-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 15px #bc5f40;
+  }
+}
+
+@keyframes gist-breathe {
+  0% {
+    transform: rotate(45deg) scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: rotate(45deg) scale(1.1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gist-status-dot {
+    animation: none !important;
+    opacity: 1;
+  }
+  .gist-diagram-shape {
+    animation: none !important;
+  }
+}
+
+.gist-status-dot {
+  animation: gist-pulse 2s infinite;
+}
+
+.gist-diagram-shape {
+  animation: gist-breathe 4s ease-in-out infinite alternate;
+}

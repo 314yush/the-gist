@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#BC5F40"/>
+  
+  <!-- Inner circle (book shape base) -->
+  <circle cx="256" cy="256" r="180" fill="#1c1a19" fill-opacity="0.3"/>
+  
+  <!-- Book icon -->
+  <path d="M160 150 C160 140, 170 130, 180 130 L332 130 C342 130, 352 140, 352 150 L352 362 C352 372, 342 382, 332 382 L180 382 C170 382, 160 372, 160 362 Z" fill="#FDFBF7" fill-opacity="0.95"/>
+  
+  <!-- Book spine -->
+  <rect x="156" y="130" width="20" height="252" rx="4" fill="#DCA842"/>
+  
+  <!-- Book pages lines -->
+  <line x1="200" y1="180" x2="320" y2="180" stroke="#1c1a19" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+  <line x1="200" y1="210" x2="300" y2="210" stroke="#1c1a19" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+  <line x1="200" y1="240" x2="310" y2="240" stroke="#1c1a19" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+  
+  <!-- Light bulb / idea symbol -->
+  <circle cx="260" cy="300" r="40" fill="#DCA842"/>
+  <rect x="248" y="340" width="24" height="20" rx="4" fill="#DCA842"/>
+  <line x1="260" y1="360" x2="260" y2="370" stroke="#FDFBF7" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Rays around bulb -->
+  <line x1="260" y1="250" x2="260" y2="235" stroke="#DCA842" stroke-width="4" stroke-linecap="round"/>
+  <line x1="295" y1="265" x2="307" y2="253" stroke="#DCA842" stroke-width="4" stroke-linecap="round"/>
+  <line x1="225" y1="265" x2="213" y2="253" stroke="#DCA842" stroke-width="4" stroke-linecap="round"/>
+</svg>
