@@ -169,9 +169,17 @@ export default function App() {
           <p className="max-w-md font-mono text-sm leading-relaxed text-white/65">
             Your knowledge profile stays yours. We don’t monetize your reading list.
           </p>
-          <a href={storeUrl || '#'} onClick={onCta} className={ctaClass}>
-            Add the extension
-          </a>
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-8">
+            <a href={storeUrl || '#'} onClick={onCta} className={ctaClass}>
+              Add the extension
+            </a>
+            <a
+              href="/privacy"
+              className="font-mono text-sm text-gold/90 underline decoration-gold/35 underline-offset-4 transition hover:text-gold"
+            >
+              Privacy policy
+            </a>
+          </div>
         </footer>
 
         <RegistrationMark className="-bottom-1.5 -left-1.5 bottom-0 top-auto" />
