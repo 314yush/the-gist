@@ -1,4 +1,9 @@
-import { authenticate, requestExplanation } from '../lib/api';
+import {
+  authenticate,
+  explanationRequestAbortSignal,
+  explanationTimeoutError,
+  requestExplanation,
+} from '../lib/api';
 import { getLocal, setLocal, setSession } from '../lib/storage';
 import type { ContentScriptMessage } from '../lib/messages';
 
@@ -103,24 +108,51 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 });
 
+/** SPAs / social feeds: `fetch()` returns a JS shell or “enable JavaScript”, not visible page text. */
+const FETCH_HTML_BLOCKLIST = ['twitter.com', 'x.com', 'mobile.twitter.com', 't.co'];
+
+function isFetchHtmlBlockedHost(hostname: string): boolean {
+  const h = hostname.replace(/^www\./, '');
+  return FETCH_HTML_BLOCKLIST.some((b) => h === b || h.endsWith(`.${b}`));
+}
+
+/**
+ * When the user uses "Explain URL" (selection inside <a> or context menu on a link), we fetch
+ * the destination page for static sites. SPAs/social (blocklist) still use selected text only —
+ * fetch returns a JS shell, not visible content.
+ */
+function shouldFetchPageHtml(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+    if (isFetchHtmlBlockedHost(u.hostname)) return false;
+  } catch {
+    return false;
+  }
+  return true;
+}
+
 async function handleExplainRequest(msg: { text: string; url?: string }) {
   const wiki = (await getLocal('wiki')) || '';
+  const signal = explanationRequestAbortSignal();
   let content = msg.text;
 
-  // If URL provided, fetch page and extract text
-  if (msg.url) {
+  // If URL provided, optionally fetch page HTML (hyperlinked selection / "Explain this link").
+  if (msg.url && shouldFetchPageHtml(msg.url)) {
     try {
-      const res = await fetch(msg.url);
+      const res = await fetch(msg.url, { signal });
       const html = await res.text();
       content = extractTextFromHtml(html);
     } catch {
-      // Fallback to the link/selected text
+      if (signal.aborted) {
+        return { success: false, error: explanationTimeoutError() };
+      }
       content = msg.text;
     }
   }
 
   try {
-    const result = await requestExplanation({ type: 'text', content }, wiki);
+    const result = await requestExplanation({ type: 'text', content }, wiki, undefined, signal);
     return { success: true, result };
   } catch (e) {
     return { success: false, error: e };

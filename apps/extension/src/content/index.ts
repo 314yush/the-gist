@@ -6,6 +6,27 @@
 
 import type { ContentScriptMessage } from '../lib/messages';
 
+/** After extension reload/update, old content scripts lose `chrome.runtime` — clicks would throw. */
+function isExtensionContextValid(): boolean {
+  try {
+    return Boolean(chrome.runtime?.id);
+  } catch {
+    return false;
+  }
+}
+
+function removeStalePillFromPage(): void {
+  try {
+    shadowHost?.remove();
+  } catch {
+    /* ignore */
+  }
+  shadowHost = null;
+  shadowRoot = null;
+  pill = null;
+  pillClickHandler = null;
+}
+
 // --- Shadow host for pill (isolates from page CSS) ---
 
 let shadowHost: HTMLElement | null = null;
@@ -60,12 +81,25 @@ function ensurePill(): HTMLElement {
   pill.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    hidePill();
-    if (pillClickHandler) {
-      pillClickHandler();
-    } else {
-      const sel = window.getSelection()?.toString().trim();
-      if (sel) triggerExplain(sel);
+    if (!isExtensionContextValid()) {
+      removeStalePillFromPage();
+      return;
+    }
+    try {
+      hidePill();
+      if (pillClickHandler) {
+        pillClickHandler();
+      } else {
+        const sel = window.getSelection()?.toString().trim();
+        if (sel) triggerExplain(sel);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('Extension context invalidated')) {
+        removeStalePillFromPage();
+      } else {
+        throw err;
+      }
     }
   });
   shadowRoot.appendChild(pill);
@@ -129,6 +163,7 @@ document.addEventListener('mousedown', (e) => {
 // --- Message listener: background → content script ---
 
 chrome.runtime.onMessage.addListener((msg: ContentScriptMessage) => {
+  if (!isExtensionContextValid()) return;
   if (msg.type === 'OPEN_OVERLAY') {
     hidePill();
     openOverlay(msg.text, msg.url);
@@ -164,17 +199,30 @@ function triggerExplain(text: string) {
 // --- Overlay lifecycle ---
 
 function openOverlay(text: string, url?: string) {
+  if (!isExtensionContextValid()) {
+    removeStalePillFromPage();
+    return;
+  }
+
   // If overlay already exists, close it first then open new one
   const existing = document.getElementById('thegist-overlay');
   if (existing) {
     existing.remove();
   }
 
+  let overlayUrl: string;
+  try {
+    overlayUrl = chrome.runtime.getURL('src/overlay/index.html');
+  } catch {
+    removeStalePillFromPage();
+    return;
+  }
+
   const container = document.createElement('div');
   container.id = 'thegist-overlay';
 
   const iframe = document.createElement('iframe');
-  iframe.src = chrome.runtime.getURL('src/overlay/index.html');
+  iframe.src = overlayUrl;
   iframe.allow = '';
   container.appendChild(iframe);
   document.documentElement.appendChild(container);
@@ -192,23 +240,32 @@ function openOverlay(text: string, url?: string) {
 
     iframe.contentWindow?.postMessage({ type: 'EXPLAIN_START', text }, '*');
 
-    chrome.runtime.sendMessage({ type: 'EXPLAIN_REQUEST', text, url }, (response) => {
-      if (chrome.runtime.lastError) {
-        iframe.contentWindow?.postMessage(
-          { type: 'EXPLAIN_ERROR', error: { code: 'runtime_error', message: chrome.runtime.lastError.message, userMessage: 'Could not connect to extension.' } },
-          '*',
-        );
-        return;
-      }
-      if (response?.success) {
-        iframe.contentWindow?.postMessage({ type: 'EXPLAIN_RESULT', result: response.result }, '*');
-      } else {
-        iframe.contentWindow?.postMessage(
-          { type: 'EXPLAIN_ERROR', error: response?.error || { code: 'unknown', message: 'Unknown error', userMessage: 'Something went wrong.' } },
-          '*',
-        );
-      }
-    });
+    try {
+      chrome.runtime.sendMessage({ type: 'EXPLAIN_REQUEST', text, url }, (response) => {
+        if (chrome.runtime.lastError) {
+          const last = chrome.runtime.lastError.message ?? '';
+          if (last.includes('Extension context invalidated')) {
+            removeStalePillFromPage();
+            return;
+          }
+          iframe.contentWindow?.postMessage(
+            { type: 'EXPLAIN_ERROR', error: { code: 'runtime_error', message: last, userMessage: 'Could not connect to extension.' } },
+            '*',
+          );
+          return;
+        }
+        if (response?.success) {
+          iframe.contentWindow?.postMessage({ type: 'EXPLAIN_RESULT', result: response.result }, '*');
+        } else {
+          iframe.contentWindow?.postMessage(
+            { type: 'EXPLAIN_ERROR', error: response?.error || { code: 'unknown', message: 'Unknown error', userMessage: 'Something went wrong.' } },
+            '*',
+          );
+        }
+      });
+    } catch {
+      removeStalePillFromPage();
+    }
   });
 
   function messageHandler(e: MessageEvent) {

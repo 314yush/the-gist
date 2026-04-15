@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ExplanationResponse } from '@thegist/shared';
+import type { ApiError, ExplanationResponse } from '@thegist/shared';
 import { gistIconUrl } from '../lib/extensionIcon';
 import { colors, fonts, retroBorder } from '../lib/theme';
 import { getLocal, setLocal } from '../lib/storage';
@@ -44,8 +44,12 @@ export function ExplanationPanel({ result, inputLabel, onFollowUpResult }: Expla
       );
       setFollowUpText('');
       onFollowUpResult?.(res);
-    } catch {
-      setFollowUpError('Failed to get follow-up. Try again.');
+    } catch (e) {
+      const msg =
+        e && typeof e === 'object' && 'userMessage' in e && typeof (e as ApiError).userMessage === 'string'
+          ? (e as ApiError).userMessage
+          : 'Failed to get follow-up. Try again.';
+      setFollowUpError(msg);
     } finally {
       setSendingFollowUp(false);
     }

@@ -5,8 +5,26 @@ import type {
   ProfileAnalyzeResponse,
   ApiError,
 } from '@thegist/shared';
-import { ERROR_MESSAGES } from '@thegist/shared';
+import { ERROR_CODES, ERROR_MESSAGES } from '@thegist/shared';
 import { getConfig } from './store';
+
+const EXPLAIN_TIMEOUT_MS = 30_000;
+
+function explainAbortSignal(): AbortSignal {
+  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    return AbortSignal.timeout(EXPLAIN_TIMEOUT_MS);
+  }
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), EXPLAIN_TIMEOUT_MS);
+  return controller.signal;
+}
+
+function isAbortError(e: unknown): boolean {
+  return (
+    (typeof DOMException !== 'undefined' && e instanceof DOMException && e.name === 'AbortError') ||
+    (e instanceof Error && e.name === 'AbortError')
+  );
+}
 
 function createApiError(code: string, message: string): ApiError {
   return {
@@ -56,8 +74,12 @@ export async function explain(
       method: 'POST',
       headers,
       body,
+      signal: explainAbortSignal(),
     });
   } catch (err) {
+    if (isAbortError(err)) {
+      throw createApiError(ERROR_CODES.REQUEST_TIMEOUT, 'Request timed out');
+    }
     throw createApiError('network_error', 'Failed to connect to API');
   }
 

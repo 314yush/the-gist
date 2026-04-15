@@ -12,9 +12,11 @@ import {
 } from '../services/prompt.js';
 import { generateExplanation } from '../services/openrouter.js';
 import { resolveVisual } from '../services/visualOrchestrator.js';
+import { log } from '../lib/logger.js';
 import type { ExplanationResponse, ApiError } from '@thegist/shared';
 import { ERROR_CODES, ERROR_MESSAGES } from '@thegist/shared';
 
+const logger = log('explanations');
 const explanations = new Hono();
 
 explanations.use('*', authMiddleware);
@@ -52,6 +54,11 @@ explanations.post('/', zValidator('json', explanationRequestSchema), async (c) =
     });
 
     if ('error' in result) {
+      // Not thrown — the outer catch below never runs, so we log here for Railway/observability.
+      logger.error('generateExplanation returned error', {
+        code: result.error.code,
+        message: result.error.message,
+      });
       const status = result.error.code === ERROR_CODES.RATE_LIMITED ? 429 : 500;
       return c.json({ error: result.error }, status);
     }
@@ -65,7 +72,7 @@ explanations.post('/', zValidator('json', explanationRequestSchema), async (c) =
 
     return c.json(response);
   } catch (error) {
-    console.error('[explanations] Explanation generation failed:', error);
+    logger.error('Explanation generation threw', error);
 
     const apiError: ApiError = {
       code: ERROR_CODES.SERVER_ERROR,

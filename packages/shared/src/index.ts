@@ -180,6 +180,7 @@ export const ERROR_CODES = {
   NETWORK_ERROR: 'network_error',
   SERVER_ERROR: 'server_error',
   INVALID_INPUT: 'invalid_input',
+  REQUEST_TIMEOUT: 'request_timeout',
 } as const;
 
 export const ERROR_MESSAGES: Record<string, string> = {
@@ -189,4 +190,6 @@ export const ERROR_MESSAGES: Record<string, string> = {
   [ERROR_CODES.NETWORK_ERROR]: "Can't reach The Gist servers. Check your internet connection.",
   [ERROR_CODES.SERVER_ERROR]: 'Something went wrong on our end. Please try again.',
   [ERROR_CODES.INVALID_INPUT]: 'Invalid input. Please try a different selection.',
+  [ERROR_CODES.REQUEST_TIMEOUT]:
+    'This took longer than 30 seconds. Try again, or use a shorter selection or a different page.',
 };

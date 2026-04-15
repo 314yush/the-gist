@@ -7,7 +7,39 @@ import type {
   ApiError,
   UserProfile,
 } from '@thegist/shared';
+import { ERROR_CODES, ERROR_MESSAGES } from '@thegist/shared';
 import { getLocal, setLocal, getSession, setSession } from './storage';
+
+const EXPLANATION_TIMEOUT_MS = 30_000;
+
+function createExplanationAbortSignal(): AbortSignal {
+  if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    return AbortSignal.timeout(EXPLANATION_TIMEOUT_MS);
+  }
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), EXPLANATION_TIMEOUT_MS);
+  return controller.signal;
+}
+
+/** Shared between prefetch `fetch` and `requestExplanation` so overlay explains finish within 30s total. */
+export function explanationRequestAbortSignal(): AbortSignal {
+  return createExplanationAbortSignal();
+}
+
+function isAbortError(e: unknown): boolean {
+  return (
+    (typeof DOMException !== 'undefined' && e instanceof DOMException && e.name === 'AbortError') ||
+    (e instanceof Error && e.name === 'AbortError')
+  );
+}
+
+export function explanationTimeoutError(): ApiError {
+  return {
+    code: ERROR_CODES.REQUEST_TIMEOUT,
+    message: 'Request timed out',
+    userMessage: ERROR_MESSAGES[ERROR_CODES.REQUEST_TIMEOUT],
+  };
+}
 
 async function getApiUrl(): Promise<string> {
   return (await getLocal('apiUrl')) || 'https://thegistapi-production.up.railway.app';
@@ -73,6 +105,7 @@ export async function requestExplanation(
   input: ExplanationRequest['input'],
   wiki: string,
   followUp?: ExplanationRequest['followUp'],
+  signal?: AbortSignal,
 ): Promise<ExplanationResponse> {
   const apiUrl = await getApiUrl();
   const headers = await getRequestHeaders();
@@ -83,11 +116,22 @@ export async function requestExplanation(
     ...(followUp ? { followUp } : {}),
   };
 
-  const res = await fetch(`${apiUrl}/v1/explanations`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  const effectiveSignal = signal ?? createExplanationAbortSignal();
+
+  let res: Response;
+  try {
+    res = await fetch(`${apiUrl}/v1/explanations`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: effectiveSignal,
+    });
+  } catch (e) {
+    if (isAbortError(e) || effectiveSignal.aborted) {
+      throw explanationTimeoutError();
+    }
+    throw e;
+  }
 
   if (!res.ok) {
     const errorBody = await res.json().catch(() => null);
